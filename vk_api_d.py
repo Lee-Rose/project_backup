@@ -112,7 +112,7 @@ class Yandex:
 
 
 def init():
-    ya_token = 'AQAAAABWQCNPAADLWwmA5N9sRka5pU0LZNh717s'
+    ya_token = ''
     user = 7911422
     quantity = input('Количество: ')
     vk_user= VK()
@@ -122,3 +122,4 @@ def init():
 
 if __name__ == '__main__':
     init()
+
