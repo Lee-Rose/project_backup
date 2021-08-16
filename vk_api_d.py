@@ -1,7 +1,7 @@
 import requests, json, datetime
 from datetime import datetime
 from urllib.parse import urljoin
-
+from alive_progress import alive_bar
 
 
 class Photo:
@@ -30,11 +30,27 @@ class VK:
                 if size['type'] == types:
                     return size
 
+
+
     def __init__(self):
-        self.token = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
+
+        with open('tokenVK.txt') as tokenVK:
+            tokenVK = tokenVK.readline()
+        self.token = tokenVK
         self.version = '5.131'
 
+
     def get_photos(self, user, quantity=5):
+
+        if type(user) == str:
+            get_url = urljoin(self.base_url, 'users.get')
+            user1 = requests.get(get_url, params={
+                'access_token': self.token,
+                'v': self.version,
+                'owner_id': user
+            }).json().get('response')
+            user = user1[0]['id']
+
         get_url = urljoin(self.base_url, 'photos.get')
         resp = requests.get(get_url, params={
             'access_token': self.token,
@@ -72,8 +88,12 @@ class Yandex:
             n += 1
         return n_folder
 
-    def __init__(self, token: str):
-        self.auth = f'OAuth {token}'
+
+    def __init__(self):
+        with open('tokenYA.txt') as tokenYA:
+            tokenYA = tokenYA.readline()
+        self.auth = f'OAuth {tokenYA}'
+
 
     def get_folders(self):
         return [i['name'] for i in (requests.get("https://cloud-api.yandex.net/v1/disk/resources",
@@ -90,36 +110,44 @@ class Yandex:
         return resp.ok
 
 
-
     def upload(self, user, photos):
-        upload_folder = self.folder_name(user, self.get_folders())
-        self.file_names(photos)
-        if self.create_folder(upload_folder):
-            log_result = []
-            for photo in photos:
-                response = requests.post("https://cloud-api.yandex.net/v1/disk/resources/upload",
-                                         params={"path": f'/{upload_folder}/{photo.name}',
-                                                 "url": photo.url},
-                                         headers={"Authorization": self.auth})
-                if response.status_code == 202:
-                    print(f'Фото "{photo.name}" загружено успешно.')
-                    log_result.append({"file_name": photo.name, "size": photo.size_type})
-                else:
-                    print(f'Ошибка загрузки фотографии "{photo.name}": '
-                          f'{response.json().get("message")}. Status code: {response.status_code}')
-            with open(f'{user}_{datetime.now().strftime("%m_%d_%Y_%H_%M_%S")}_files.json', "w") as f:
+
+        with alive_bar(len(photos), bar='blocks') as bar:
+            upload_folder = self.folder_name(user, self.get_folders())
+            self.file_names(photos)
+            if self.create_folder(upload_folder):
+                log_result = []
+                for photo in photos:
+                    response = requests.post("https://cloud-api.yandex.net/v1/disk/resources/upload",
+                                             params={"path": f'/{upload_folder}/{photo.name}',
+                                                     "url": photo.url},
+                                             headers={"Authorization": self.auth})
+                    if response.status_code == 202:
+                        print(f'Фото "{photo.name}" загружено успешно.')
+                        log_result.append({"file_name": photo.name, "size": photo.size_type})
+
+                    else:
+                        print(f'Ошибка загрузки фотографии "{photo.name}": '
+                              f'{response.json().get("message")}. Status code: {response.status_code}')
+                    bar()
+
+            with open(f'{user}_{datetime.now().strftime("%d_%m_%Y")}_files.json', "w") as f:
                 json.dump(log_result, f, ensure_ascii=False, indent=2)
 
 
-def init():
-    ya_token = ''
-    user = 7911422
-    quantity = input('Количество: ')
+def main():
+
+    user = input('Введите id или username пользователя: ')
+    quantity = input('Количество фотографий, которые нужно получить: ')
     vk_user= VK()
-    ya_api: Yandex = Yandex(ya_token)
+    ya_api: Yandex = Yandex()
+
     ya_api.upload(user, vk_user.get_photos(user, int(quantity)))
 
 
 if __name__ == '__main__':
-    init()
+    main()
+
+
+
 
