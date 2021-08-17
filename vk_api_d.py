@@ -47,15 +47,15 @@ class VK:
             user1 = requests.get(get_url, params={
                 'access_token': self.token,
                 'v': self.version,
-                'owner_id': user
+                'user_ids': user
             }).json().get('response')
             user = user1[0]['id']
 
         get_url = urljoin(self.base_url, 'photos.get')
         resp = requests.get(get_url, params={
+            'user_id': user,
             'access_token': self.token,
             'v': self.version,
-            'owner_id': user,
             'album_id': 'profile',
             'photo_sizes': 1,
             'extended': 1
@@ -96,16 +96,16 @@ class Yandex:
 
 
     def get_folders(self):
-        return [i['name'] for i in (requests.get("https://cloud-api.yandex.net/v1/disk/resources",
-                                                 params={"path": '/'},
-                                                 headers={"Authorization": self.auth})
+        return [i['name'] for i in (requests.get('https://cloud-api.yandex.net/v1/disk/resources',
+                                                 params={'path': '/'},
+                                                 headers={'Authorization': self.auth})
                                     .json().get('_embedded').get('items')) if i['type'] == 'dir']
 
 
     def create_folder(self, folder_name):
-        resp = requests.put("https://cloud-api.yandex.net/v1/disk/resources",
-                            params={"path": f'/{folder_name}'},
-                            headers={"Authorization": self.auth})
+        resp = requests.put('https://cloud-api.yandex.net/v1/disk/resources',
+                            params={'path': f'/{folder_name}'},
+                            headers={'Authorization': self.auth})
         print(f'Создана папка с названием {folder_name}: код {resp.status_code}')
         return resp.ok
 
@@ -118,20 +118,20 @@ class Yandex:
             if self.create_folder(upload_folder):
                 log_result = []
                 for photo in photos:
-                    response = requests.post("https://cloud-api.yandex.net/v1/disk/resources/upload",
-                                             params={"path": f'/{upload_folder}/{photo.name}',
-                                                     "url": photo.url},
-                                             headers={"Authorization": self.auth})
+                    response = requests.post('https://cloud-api.yandex.net/v1/disk/resources/upload',
+                                             params={'path': f'/{upload_folder}/{photo.name}',
+                                                     'url': photo.url},
+                                             headers={'Authorization': self.auth})
                     if response.status_code == 202:
                         print(f'Фото "{photo.name}" загружено успешно.')
-                        log_result.append({"file_name": photo.name, "size": photo.size_type})
+                        log_result.append({'file_name': photo.name, 'size': photo.size_type})
 
                     else:
                         print(f'Ошибка загрузки фотографии "{photo.name}": '
                               f'{response.json().get("message")}. Status code: {response.status_code}')
                     bar()
 
-            with open(f'{user}_{datetime.now().strftime("%d_%m_%Y")}_files.json', "w") as f:
+            with open(f'{user}_{datetime.now().strftime("%d_%m_%Y")}_files.json', 'w') as f:
                 json.dump(log_result, f, ensure_ascii=False, indent=2)
 
 
