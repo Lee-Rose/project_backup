@@ -31,7 +31,6 @@ class VK:
                     return size
 
 
-
     def __init__(self):
 
         with open('tokenVK.txt') as tokenVK:
@@ -106,7 +105,7 @@ class Yandex:
         resp = requests.put('https://cloud-api.yandex.net/v1/disk/resources',
                             params={'path': f'/{folder_name}'},
                             headers={'Authorization': self.auth})
-        print(f'Создана папка с названием {folder_name}: код {resp.status_code}')
+        print(f'Created folder with name {folder_name}: code {resp.status_code}')
         return resp.ok
 
 
@@ -123,11 +122,11 @@ class Yandex:
                                                      'url': photo.url},
                                              headers={'Authorization': self.auth})
                     if response.status_code == 202:
-                        print(f'Фото "{photo.name}" загружено успешно.')
+                        print(f'"{photo.name}" download was successful')
                         log_result.append({'file_name': photo.name, 'size': photo.size_type})
 
                     else:
-                        print(f'Ошибка загрузки фотографии "{photo.name}": '
+                        print(f'Error - Unloading files "{photo.name}": '
                               f'{response.json().get("message")}. Status code: {response.status_code}')
                     bar()
 
@@ -137,8 +136,8 @@ class Yandex:
 
 def main():
 
-    user = input('Введите id или username пользователя: ')
-    quantity = input('Количество фотографий, которые нужно получить: ')
+    user = input('Enter the id or username of the user: ')
+    quantity = input('What kind of photography team should use: ')
     vk_user= VK()
     ya_api: Yandex = Yandex()
 
