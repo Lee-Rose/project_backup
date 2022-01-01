@@ -1,7 +1,5 @@
-h1 project "Backup"
+project "Backup"
 ===================== 
-
---- 
 
 It is possible that we want to show our friends photos from social networks, but social. networks may be unavailable for some reason. Let's protect ourselves from this.
 
@@ -9,7 +7,8 @@ This is a program for backing up photos from the profile (avatars) of a vk user 
 
 ___
 
-###Input data:
+Input data:
+-------------------
 
 The user enters:
 
